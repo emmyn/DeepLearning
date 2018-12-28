@@ -37,6 +37,9 @@ import keras
 from keras.models import Sequential
 from keras.layers import Dense         # Weight close to but to equal to 0
 
+# Avoiding overfitting
+from keras.layers import Dropout
+
 # Initialize ann
 classifier = Sequential()
 
@@ -46,9 +49,19 @@ classifier.add(Dense(units = 6,
                      kernel_initializer = 'uniform',
                      input_dim = 11))
 
+# Avoiding overfitting
+classifier.add(Dropout(
+        rate = 0.1,         # Percentage of neuron deactivated
+        ))
+
 classifier.add(Dense(units = 6,
                      activation = 'relu', 
                      kernel_initializer = 'uniform'))
+
+# Avoiding overfitting
+classifier.add(Dropout(
+        rate = 0.1,         # Percentage of neuron deactivated
+        ))
 
 # Output Layer
 classifier.add(Dense(units = 1,
@@ -66,7 +79,7 @@ classifier.fit(X_train,
                batch_size = 10,
                epochs = 100)
 
-## END OF ANN
+## END OF ACUAL ANN
 
 
 # Predicting the Test set results
@@ -82,3 +95,73 @@ new_pred = classifier.predict(sc.transform(np.array([[0.0, 0, 600, 0, 40, 3, 600
 new_pred = (new_pred > 0.5)
 
 
+# Evaluating real accuracy using cross validation
+# Uses multiple small lots and takes the mean accuracy
+from keras.wrappers.scikit_learn import KerasClassifier
+from sklearn.model_selection import cross_val_score
+
+def build_classifier():
+    classifier = Sequential()
+    classifier.add(Dense(units = 6,
+                     activation = 'relu', 
+                     kernel_initializer = 'uniform',
+                     input_dim = 11))
+    classifier.add(Dense(units = 6,
+                     activation = 'relu', 
+                     kernel_initializer = 'uniform'))
+    classifier.add(Dense(units = 1,
+                     activation = 'sigmoid', 
+                     kernel_initializer = 'uniform'))
+    classifier.compile(optimizer = 'adam', 
+                   loss = 'binary_crossentropy',
+                   metrics = ['accuracy'])
+    return classifier
+
+classifier = KerasClassifier(build_fn = build_classifier, 
+                             batch_size = 10,
+                             epochs = 100)
+
+precision = cross_val_score(estimator = classifier,
+                            X = X_train,
+                            y = y_train,
+                            cv = 10    # arbitrary
+                            )
+mean = precision.mean()
+std = precision.std()
+
+# Optimazing parameters to increase accuracy 
+from sklearn.model_selection import GridSearchCV
+
+def build_classifier2(optimizer):
+    classifier = Sequential()
+    classifier.add(Dense(units = 6,
+                     activation = 'relu', 
+                     kernel_initializer = 'uniform',
+                     input_dim = 11))
+    classifier.add(Dense(units = 6,
+                     activation = 'relu', 
+                     kernel_initializer = 'uniform'))
+    classifier.add(Dense(units = 1,
+                     activation = 'sigmoid', 
+                     kernel_initializer = 'uniform'))
+    classifier.compile(optimizer = optimizer, 
+                   loss = 'binary_crossentropy',
+                   metrics = ['accuracy'])
+    return classifier
+
+classifier = KerasClassifier(build_fn = build_classifier2)
+
+parameters = {"batch_size": [25, 32],
+              "nb_epoch": [100, 500],
+              "optimizer": ["adam", "rmsprop"]}
+
+gridSearch = GridSearchCV(estimator = classifier,
+                          param_grid = parameters,
+                          scoring = "accuracy",
+                          cv = 10)
+gridSearch = gridSearch.fit(X_train, y_train)
+
+best_params = gridSearch.best_params_
+best_precision = gridSearch.best_score_
+
+ 
