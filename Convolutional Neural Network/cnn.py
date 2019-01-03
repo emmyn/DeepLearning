@@ -16,7 +16,7 @@ classifier = Sequential()
 classifier.add(Convolution2D(filters = 32, 
                              kernel_size = 3,
                              strides = 1,
-                             input_shape = (150, 150, 3),
+                             input_shape = (200, 200, 3),
                              activation = "relu"))
 
 # Step Max Pooling
@@ -39,9 +39,14 @@ classifier.add(Flatten())
 # Step fully connected layers
 classifier.add(Dense(units = 128,
                      activation = "relu"))
+
+classifier.add(Dropout(0.2))
+
 classifier.add(Dense(units = 128,
                      activation = "relu"))
+
 classifier.add(Dropout(0.2))
+
 classifier.add(Dense(units = 1, 
                      activation = "sigmoid"))
 
@@ -65,20 +70,20 @@ test_datagen = ImageDataGenerator(rescale=1./255)
 
 training_set = train_datagen.flow_from_directory(
         'dataset\\training_set',
-        target_size=(150, 150),
+        target_size=(200, 200),
         batch_size=32,
         class_mode='binary')
 
 test_set = test_datagen.flow_from_directory(
         'dataset\\test_set',
-        target_size=(150, 150),
+        target_size=(200, 200),
         batch_size=32,
         class_mode='binary')
 
 classifier.fit_generator(
         training_set,
         steps_per_epoch=250,
-        epochs=75,
+        epochs=50,
         validation_data=test_set,
         validation_steps=63)
 
@@ -88,7 +93,7 @@ import numpy as np
 from keras.preprocessing import image
 
 test_image = image.load_img("dataset/single_prediction/cat_or_dog_2.jpg",
-                       target_size = (150, 150))
+                       target_size = (200, 200))
 test_image = image.img_to_array(test_image)
 test_image = np.expand_dims(test_image, 
                             axis = 0)
@@ -100,7 +105,7 @@ training_set.class_indices
 # Improving the network
 # Changed number of epochs, 
 #                   size of image
-#                   added Dropout
+#                   added Dropout layers
 #                   added fully connected layer
 
 

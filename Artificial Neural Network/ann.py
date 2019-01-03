@@ -78,6 +78,10 @@ classifier.fit(X_train,
                y_train,
                batch_size = 10,
                epochs = 100)
+# batch_size = 25
+# epochs = 500
+# to optimaze
+
 
 ## END OF ACUAL ANN
 
@@ -115,6 +119,7 @@ def build_classifier():
     classifier.compile(optimizer = 'adam', 
                    loss = 'binary_crossentropy',
                    metrics = ['accuracy'])
+    # rmstrop to optimize
     return classifier
 
 classifier = KerasClassifier(build_fn = build_classifier, 
@@ -152,7 +157,7 @@ def build_classifier2(optimizer):
 classifier = KerasClassifier(build_fn = build_classifier2)
 
 parameters = {"batch_size": [25, 32],
-              "nb_epoch": [100, 500],
+              "epochs": [100, 500],
               "optimizer": ["adam", "rmsprop"]}
 
 gridSearch = GridSearchCV(estimator = classifier,
